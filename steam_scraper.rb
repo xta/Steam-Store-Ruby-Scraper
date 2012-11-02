@@ -1,12 +1,7 @@
 require 'open-uri'
 require 'nokogiri'
 
-  site = "http://store.steampowered.com/search#sort_by=&sort_order=ASC&page="
-  current_page = 1
-
-  def page_doc(url, page_elements) 
-    Nokogiri::HTML(open(url))/page_elements
-  end
+  @@site = "http://store.steampowered.com/search#sort_by=&sort_order=ASC&page=1"
 
   class GameListing
     @@all = []
@@ -32,13 +27,17 @@ require 'nokogiri'
       end
       @@all << self
     end
+  end
 
+
+
+  def page_doc(url, page_elements) 
+    Nokogiri::HTML(open(url))/page_elements
   end
 
   def scrape_page(cycle_tracker,i)
-    site = "http://store.steampowered.com/search#sort_by=&sort_order=ASC&page="
 
-    page_doc("#{site + i.to_s}",".search_result_row.#{cycle_tracker}").each do |game|
+    page_doc("#{@@site + i.to_s}",".search_result_row.#{cycle_tracker}").each do |game|
       price = (game/".col.search_price").text.split('$').last
       type = (game/".col.search_type > img").map { |image| image['src'] }.first
       metascore = (game/".col.search_metascore").text
@@ -51,12 +50,16 @@ require 'nokogiri'
   end
 
 # get last search page number
-  index_body_text = page_doc("#{site + current_page.to_s}",".search_pagination_right").inner_text
+  index_body_text = page_doc("#{@@site}1",".search_pagination_right").inner_text
   last_search_page_number = index_body_text.match(/\d{3}/).to_s
 
 # scrape each search page
-  for i in 1..1 #last_search_page_number.to_i
+  for i in 1..1 #last_search_page_number.to_i => this part commented out to prevent excessive test scraping
     scrape_page("odd",i)
     scrape_page("even",i)
   end
-  
+
+# demo of results for page #1
+  GameListing.all.each do |game|
+    puts "#{game.name} was released on #{game.released} and is currently #{game.price}."
+  end
