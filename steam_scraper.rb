@@ -4,6 +4,7 @@ require 'nokogiri'
   @@site = "http://store.steampowered.com/search#sort_by=&sort_order=ASC&page="
 
   class GameListing
+
     @@all = []
     @@columns = %w{ price
                     type
@@ -23,21 +24,21 @@ require 'nokogiri'
 
     def initialize(*args)
       @@columns.each_with_index do |a,i|
-        self.send("#{a}=", args[i])
+        send("#{a}=", args[i])
       end
       @@all << self
     end
+
   end
-
-
 
   def page_doc(url, page_elements) 
     Nokogiri::HTML(open(url))/page_elements
   end
 
-  def scrape_page(cycle_tracker,i)
+  def scrape_page(current_page, cycle_tracker, i)
 
-    page_doc("#{@@site + i.to_s}",".search_result_row.#{cycle_tracker}").each do |game|
+    (current_page/".search_result_row.#{cycle_tracker}").each do |game|
+      
       price = (game/".col.search_price").text.split('$').last
       type = (game/".col.search_type > img").map { |image| image['src'] }.first
       metascore = (game/".col.search_metascore").text
@@ -55,8 +56,10 @@ require 'nokogiri'
 
 # scrape each search page
   for i in 1..1 #last_search_page_number.to_i => this part commented out to prevent excessive test scraping
-    scrape_page("odd",i)
-    scrape_page("even",i)
+    current_page = page_doc("#{@@site + i.to_s}","body")
+
+    scrape_page(current_page, "odd", i)
+    scrape_page(current_page, "even", i)
   end
 
 # demo of results (only includes page #1)
