@@ -1,7 +1,7 @@
 require 'open-uri'
 require 'nokogiri'
 
-  @@site = "http://store.steampowered.com/search#sort_by=&sort_order=ASC&page=1"
+  @@site = "http://store.steampowered.com/search#sort_by=&sort_order=ASC&page="
 
   class GameListing
     @@all = []
@@ -59,7 +59,9 @@ require 'nokogiri'
     scrape_page("even",i)
   end
 
-# demo of results for page #1
+# demo of results (only includes page #1)
+  puts "There are #{last_search_page_number} search result pages. Here are results from page #1:"
+
   GameListing.all.each do |game|
     puts "#{game.name} was released on #{game.released} and is currently #{game.price}."
   end
